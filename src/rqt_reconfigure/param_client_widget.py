@@ -1,7 +1,7 @@
-# Software License Agreement (BSD License)
-#
 # Copyright (c) 2012, Willow Garage, Inc.
 # All rights reserved.
+#
+# Software License Agreement (BSD License 2.0)
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,26 +32,28 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-import rospy
+from dynamic_reconfigure import (DynamicReconfigureCallbackException,
+                                 DynamicReconfigureParameterException)
 
 from python_qt_binding.QtCore import QMargins
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import (QFileDialog, QHBoxLayout,
                                          QPushButton, QWidget)
-from .param_editors import EditorWidget
-from .param_groups import GroupWidget, find_cfg
-from .param_updater import ParamUpdater
 
-from dynamic_reconfigure import (DynamicReconfigureParameterException,
-                                 DynamicReconfigureCallbackException)
 from rospy.service import ServiceException
 
 import yaml
 
+from rqt_reconfigure import logging
+from rqt_reconfigure.param_editors import EditorWidget
+from rqt_reconfigure.param_groups import find_cfg, GroupWidget
+from rqt_reconfigure.param_updater import ParamUpdater
 
-class DynreconfClientWidget(GroupWidget):
+
+class ParamClientWidget(GroupWidget):
     """
     A wrapper of dynamic_reconfigure.client instance.
+
     Represents a widget where users can view and modify ROS params.
     """
 
@@ -60,11 +62,10 @@ class DynreconfClientWidget(GroupWidget):
         :type reconf: dynamic_reconfigure.client
         :type node_name: str
         """
-
         group_desc = reconf.get_group_descriptions()
-        rospy.logdebug('DynreconfClientWidget.group_desc=%s', group_desc)
-        super(DynreconfClientWidget, self).__init__(ParamUpdater(reconf),
-                                                    group_desc, node_name)
+        logging.debug('ParamClientWidget.group_desc={}'.format(group_desc))
+        super(ParamClientWidget, self).__init__(ParamUpdater(reconf),
+                                                group_desc, node_name)
 
         # Save and load buttons
         self.button_widget = QWidget(self)
@@ -91,54 +92,53 @@ class DynreconfClientWidget(GroupWidget):
         self._node_grn = node_name
 
     def get_node_grn(self):
-
         return self._node_grn
 
     def config_callback(self, config):
 
-        #TODO: Think about replacing callback architecture with signals.
+        # TODO: Think about replacing callback architecture with signals.
 
         if config:
             # TODO: should use config.keys but this method doesnt exist
 
             names = [name for name, v in config.items()]
             # v isn't used but necessary to get key and put it into dict.
-            rospy.logdebug('config_callback name={} v={}'.format(name, v))
+            # logging.debug('config_callback name={} v={}'.format(name, v))
 
             for widget in self.editor_widgets:
                 if isinstance(widget, EditorWidget):
                     if widget.param_name in names:
-                        rospy.logdebug('EDITOR widget.param_name=%s',
-                                       widget.param_name)
+                        logging.debug('EDITOR widget.param_name={}'.format(
+                                      widget.param_name))
                         widget.update_value(config[widget.param_name])
                 elif isinstance(widget, GroupWidget):
                     cfg = find_cfg(config, widget.param_name)
-                    rospy.logdebug('GROUP widget.param_name=%s',
-                                   widget.param_name)
+                    logging.debug('GROUP widget.param_name={}'.format(
+                                  widget.param_name))
                     widget.update_group(cfg)
 
     def _handle_load_clicked(self):
         filename = QFileDialog.getOpenFileName(
-                self, self.tr('Load from File'), '.',
-                self.tr('YAML file {.yaml} (*.yaml)'))
+            self, self.tr('Load from File'), '.',
+            self.tr('YAML file {.yaml} (*.yaml)'))
         if filename[0] != '':
             self.load_param(filename[0])
 
     def _handle_save_clicked(self):
         filename = QFileDialog.getSaveFileName(
-                self, self.tr('Save parameters to file...'), '.',
-                self.tr('YAML files {.yaml} (*.yaml)'))
+            self, self.tr('Save parameters to file...'), '.',
+            self.tr('YAML files {.yaml} (*.yaml)'))
         if filename[0] != '':
             self.save_param(filename[0])
 
     def save_param(self, filename):
         configuration = self.reconf.get_configuration()
         if configuration is not None:
-            with file(filename, 'w') as f:
+            with open(filename, 'w') as f:
                 yaml.dump(configuration, f)
 
     def load_param(self, filename):
-        with file(filename, 'r') as f:
+        with open(filename, 'r') as f:
             configuration = {}
             for doc in yaml.load_all(f.read()):
                 configuration.update(doc)
@@ -146,11 +146,20 @@ class DynreconfClientWidget(GroupWidget):
         try:
             self.reconf.update_configuration(configuration)
         except ServiceException as e:
-            rospy.logwarn('Call for reconfiguration wasn\'t successful because: %s', e.message)
+            logging.warn(
+                "Call for reconfiguration wasn't successful"
+                ' because: {}'.format(e.message)
+            )
         except DynamicReconfigureParameterException as e:
-            rospy.logwarn('Reconfiguration wasn\'t successful because: %s', e.message)
+            logging.warn(
+                "Reconfiguration wasn't successful"
+                ' because: {}'.format(e.message)
+            )
         except DynamicReconfigureCallbackException as e:
-            rospy.logwarn('Reconfiguration wasn\'t successful because: %s', e.message)
+            logging.warn(
+                "Reconfiguration wasn't successful"
+                ' because: {}'.format(e.message)
+            )
 
     def close(self):
         self.reconf.close()
@@ -162,5 +171,5 @@ class DynreconfClientWidget(GroupWidget):
         self.deleteLater()
 
     def filter_param(self, filter_key):
-        #TODO impl
+        # TODO impl
         pass

@@ -1,3 +1,26 @@
+## rqt_reconfigure (melodic) - 0.5.0-1
+
+The packages in the `rqt_reconfigure` repository were released into the `melodic` distro by running `/usr/bin/bloom-release rqt_reconfigure --ros-distro melodic` on `Tue, 22 Oct 2019 21:43:32 -0000`
+
+The `rqt_reconfigure` package was released.
+
+Version of package(s) in repository `rqt_reconfigure`:
+
+- upstream repository: https://github.com/ros-visualization/rqt_reconfigure.git
+- release repository: https://github.com/ros-gbp/rqt_reconfigure-release.git
+- rosdistro version: `0.4.10-0`
+- old version: `0.4.10-0`
+- new version: `0.5.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.0`
+- catkin_pkg version: `0.4.13`
+- rosdep version: `0.16.1`
+- rosdistro version: `0.7.5`
+- vcstools version: `0.1.42`
+
+
 ## rqt_reconfigure (indigo) - 0.4.10-0
 
 The packages in the `rqt_reconfigure` repository were released into the `indigo` distro by running `/home/cottsay/bloom/installroot/usr/bin/bloom-release --rosdistro indigo --track indigo rqt_reconfigure` on `Thu, 19 Apr 2018 23:09:17 -0000`

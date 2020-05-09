@@ -1,3 +1,26 @@
+## rqt_reconfigure (noetic) - 0.5.2-1
+
+The packages in the `rqt_reconfigure` repository were released into the `noetic` distro by running `/usr/bin/bloom-release rqt_reconfigure --ros-distro noetic` on `Sat, 09 May 2020 03:33:50 -0000`
+
+The `rqt_reconfigure` package was released.
+
+Version of package(s) in repository `rqt_reconfigure`:
+
+- upstream repository: https://github.com/ros-visualization/rqt_reconfigure.git
+- release repository: https://github.com/ros-gbp/rqt_reconfigure-release.git
+- rosdistro version: `null`
+- old version: `null`
+- new version: `0.5.2-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.7`
+- catkin_pkg version: `0.4.16`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.0`
+- vcstools version: `0.1.42`
+
+
 ## rqt_reconfigure (kinetic) - 0.5.1-1
 
 The packages in the `rqt_reconfigure` repository were released into the `kinetic` distro by running `/usr/bin/bloom-release rqt_reconfigure --ros-distro kinetic` on `Fri, 25 Oct 2019 14:52:34 -0000`

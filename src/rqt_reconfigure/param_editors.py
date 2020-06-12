@@ -37,7 +37,7 @@ import math
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QLocale, Signal
+from python_qt_binding.QtCore import QEvent, QLocale, Signal
 from python_qt_binding.QtGui import QDoubleValidator, QIntValidator
 from python_qt_binding.QtWidgets import QMenu, QWidget
 
@@ -191,12 +191,13 @@ class StringEditor(EditorWidget):
 
     def update_value(self, value):
         super(StringEditor, self).update_value(value)
-        logging.debug('StringEditor update_value={}'.format(value))
+        logging.debug('StringEditor update_value={}'.format(
+            value.encode(errors='replace').decode()))
         self._update_signal.emit(value)
 
     def edit_finished(self):
         logging.debug('StringEditor edit_finished val={}'.format(
-            self._paramval_lineedit.text()))
+            self._paramval_lineedit.text().encode(errors='replace').decode()))
         self._update_paramserver(self._paramval_lineedit.text())
 
     def _set_to_empty(self):
@@ -245,6 +246,14 @@ class IntegerEditor(EditorWidget):
                              ).triggered.connect(self._set_to_max)
         self.cmenu.addAction(self.tr('Set to Minimum')
                              ).triggered.connect(self._set_to_min)
+
+        # Don't process wheel events when not focused
+        self._slider_horizontal.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Wheel and not obj.hasFocus():
+            return True
+        return super(EditorWidget, self).eventFilter(obj, event)
 
     def _slider_moved(self):
         # This is a "local" edit - only change the text
@@ -352,6 +361,14 @@ class DoubleEditor(EditorWidget):
         self.cmenu.addAction(self.tr('Set to NaN')
                              ).triggered.connect(self._set_to_nan)
 
+        # Don't process wheel events when not focused
+        self._slider_horizontal.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Wheel and not obj.hasFocus():
+            return True
+        return super(EditorWidget, self).eventFilter(obj, event)
+
     def _slider_moved(self):
         # This is a "local" edit - only change the text
         self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(
@@ -408,6 +425,7 @@ class DoubleEditor(EditorWidget):
 
 class EnumEditor(EditorWidget):
     _update_signal = Signal(int)
+    _invalid_value_signal = Signal(str)
 
     def __init__(self, updater, config):
         super(EnumEditor, self).__init__(updater, config)
@@ -442,15 +460,49 @@ class EnumEditor(EditorWidget):
         # Bind the context menu
         self._combobox.contextMenuEvent = self.contextMenuEvent
 
+        # Add the invalid value handler
+        self._invalid_value_signal.connect(self._handle_invalid_value)
+
+        # Don't process wheel events when not focused
+        self._combobox.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Wheel and not obj.hasFocus():
+            return True
+        return super(EditorWidget, self).eventFilter(obj, event)
+
     def selected(self, index):
-        self._update_paramserver(self.values[index])
+        try:
+            value = self.values[index]
+        except IndexError:
+            logging.error("Invalid selection '{}' for parameter '{}'".format(
+                self._combobox.itemText(index), self.param_name))
+        else:
+            self._update_paramserver(value)
 
     def update_value(self, value):
         super(EnumEditor, self).update_value(value)
-        self._update_signal.emit(self.values.index(value))
+        try:
+            index = self.values.index(value)
+        except ValueError:
+            self._invalid_value_signal.emit('invalid ({})'.format(value))
+        else:
+            self._update_signal.emit(index)
+
+    def _handle_invalid_value(self, value):
+        # Block all signals so we don't loop
+        self._combobox.blockSignals(True)
+        if self._combobox.count() > len(self.values):
+            self._combobox.setItemText(len(self.values), value)
+        else:
+            self._combobox.addItem(value)
+        self._combobox.setCurrentIndex(len(self.values))
+        self._combobox.blockSignals(False)
 
     def _update_gui(self, idx):
         # Block all signals so we don't loop
         self._combobox.blockSignals(True)
         self._combobox.setCurrentIndex(idx)
+        # Remove any previous invalid value
+        self._combobox.removeItem(len(self.values))
         self._combobox.blockSignals(False)

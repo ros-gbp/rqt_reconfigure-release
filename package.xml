@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>rqt_reconfigure</name>
-  <version>0.5.3</version>
+  <version>0.5.4</version>
   <description>This rqt plugin succeeds former dynamic_reconfigure's GUI
     (reconfigure_gui), and provides the way to view and edit the parameters
     that are accessible via dynamic_reconfigure.<br/>
@@ -14,13 +14,11 @@
     to nodes.
   </description>
   <maintainer email="logans@cottsay.net">Scott K Logan</maintainer>
-
+  <maintainer email="michael.jeronimo@openrobotics.org">Michael Jeronimo</maintainer>
   <license>BSD</license>
-
   <url type="website">http://wiki.ros.org/rqt_reconfigure</url>
   <url type="repository">https://github.com/ros-visualization/rqt_reconfigure</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_reconfigure/issues</url>
-
   <author>Isaac Saito</author>
   <author>Ze'ev Klapow</author>
 
